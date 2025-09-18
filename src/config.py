@@ -1,19 +1,35 @@
 # src/config.py
 
 import datetime
+import os
 
-# =======================
-# Paths
-# =======================
-RAW_DATA_PATH = "data/raw/us_treasury_yields_Mar2025.csv"
-FIGURES_PATH = "reports/figures/"
+# Cấu hình thời gian
+START_DATE = datetime.datetime(2002, 1, 1)
+END_DATE   = datetime.datetime(2025, 9, 13)
 
-# =======================
-# Data Ingestion Parameters
-# =======================
-START_DATE = datetime.datetime(2025, 3, 1)
-END_DATE = datetime.datetime(2025, 3, 31)
-YIELD_TICKERS_MAP = {
-    "DGS2": "DGS2",   # 2 Year Treasury
-    "DGS10": "DGS10"  # 10 Year Treasury
+
+# Các biến kinh tế vĩ mô
+MACRO_VARS = {
+    "UNRATE": "Unemployment Rate",
+    "FEDFUNDS": "Federal Funds Rate",
+    "CPIAUCSL": "CPI (All Urban Consumers)"
 }
+
+# Các kỳ hạn treasury yields
+TICKERS = [
+    "DGS1MO", "DGS3MO", "DGS6MO",
+    "DGS1", "DGS2", "DGS3",
+    "DGS5", "DGS7", "DGS10",
+    "DGS20", "DGS30"
+]
+
+# Gộp chung: tất cả series từ FRED
+ALL_SERIES = list(MACRO_VARS.keys()) + TICKERS
+
+# =======================
+# Đường dẫn file
+# =======================
+DATA_DIR = "data"
+RAW_DATA_PATH = os.path.join(DATA_DIR, "macro_treasury_full_2000.csv")
+
+

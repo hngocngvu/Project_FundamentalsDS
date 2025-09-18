@@ -5,30 +5,32 @@ import pandas_datareader.data as web
 from src import config
 import os
 
-def fetch_and_save_yields():
+
+def fetch_data():
+    print(f"Fetching data from {config.START_DATE.date()} to {config.END_DATE.date()}...")
+
+    # Macroeconomic variables
+    macro_dfs = []
+    for code in config.MACRO_VARS.keys():
+        macro_dfs.append(web.DataReader(code, "fred", config.START_DATE, config.END_DATE))
+
+    # Treasury yields
+    treasury = pd.DataFrame()
+    for t in config.TICKERS:
+        treasury[t] = web.DataReader(t, "fred", config.START_DATE, config.END_DATE)
+
+    # Merge all
+    df = pd.concat(macro_dfs + [treasury], axis=1)
+    df.columns = list(config.MACRO_VARS.keys()) + config.TICKERS
+
+    return df
+
+
+def save_data(df, output_path=config.RAW_DATA_PATH):
     """
-    Fetches 2Y and 10Y treasury yields from FRED for a specific period,
-    calculates the spread, and saves the result to a CSV file.
+    Save DataFrame to CSV file.
     """
-    print(f"🚀 Fetching data from {config.START_DATE.date()} to {config.END_DATE.date()}...")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Fetch data for each ticker
-    dgs2 = web.DataReader("DGS2", "fred", config.START_DATE, config.END_DATE)
-    dgs10 = web.DataReader("DGS10", "fred", config.START_DATE, config.END_DATE)
-
-    # Join the series into a single DataFrame
-    yields = dgs2.join(dgs10, how="outer")
-    yields.columns = ["DGS2", "DGS10"]
-
-    # Calculate the yield spread
-    yields["Spread_10Y_2Y"] = yields["DGS10"] - yields["DGS2"]
-    
-    # Ensure the target directory exists
-    os.makedirs(os.path.dirname(config.RAW_DATA_PATH), exist_ok=True)
-
-    # Save to the raw data path defined in config
-    yields.to_csv(config.RAW_DATA_PATH)
-    
-    print(f"✅ Data successfully saved to {config.RAW_DATA_PATH}")
-    print("Data head:")
-    print(yields.head())
+    df.to_csv(output_path, index=True)
+    print(f"Data successfully saved to {output_path}")
